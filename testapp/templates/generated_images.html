@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generated Images</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-top: 20px;
+        }
+
+        .images-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 20px;
+        }
+
+        .image-card {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin: 10px;
+            padding: 10px;
+            text-align: center;
+            width: 320px;
+        }
+
+        .image-card img {
+            border-radius: 10px;
+            max-width: 100%;
+            height: auto;
+        }
+
+        .image-card a {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .image-card a:hover {
+            background-color: #45a049;
+        }
+
+        .no-images {
+            color: #777;
+            margin-top: 20px;
+        }
+
+        .back-link {
+            margin: 20px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .back-link:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>Generated Images</h1>
+   
+        <div class="images-container">
+            
+                <div class="image-card">
+                    <img src="{{image_path1}}" alt="Generated Image">
+                    
+                </div>
+                <div class="image-card">
+                    <img src="{{image_path2}}" alt="Generated Image">
+                    
+                </div>
+                <div class="image-card">
+                    <img src="{{image_path3}}" alt="Generated Image">
+                    
+                </div>
+               
+        
+        </div>
+    <a class="back-link" href="{% url 'home' %}">Back to Profile</a>
+</body>
+</html>
