@@ -6,9 +6,8 @@ from django.conf import settings
 import subprocess
 import mimetypes
 
-def run_command(user_id, image_path):
+def run_command(user_id, image_path, gender):
     project_name = user_id
-    
     command = [
         'autotrain', 'dreambooth', '--train',
         '--model', 'stabilityai/stable-diffusion-xl-base-1.0',
@@ -17,7 +16,7 @@ def run_command(user_id, image_path):
         '--prompt', f"A photo of {user_id} wearing casual clothes and smiling.",
         '--resolution', '1024',
         '--batch-size', '1',
-        '--num-steps', '1',
+        '--num-steps', '900',
         '--gradient-accumulation', '4',
         '--lr', '1e-4',
         '--mixed-precision', 'fp16'
@@ -25,11 +24,11 @@ def run_command(user_id, image_path):
     
     try:
         subprocess.run(command, check=True)
-        run_post_training_code(user_id)
+        run_post_training_code(user_id, gender)  # Pass gender here
     except subprocess.CalledProcessError as e:
         print(f"An error occurred: {e}")
 
-def run_post_training_code(user_id):
+def run_post_training_code(user_id, gender):
     from diffusers import DiffusionPipeline, AutoencoderKL
     import torch
 
@@ -47,13 +46,29 @@ def run_post_training_code(user_id):
     pipe.to("cuda")
     pipe.load_lora_weights(f"{user_id}", weight_name="pytorch_lora_weights.safetensors")
 
-    prompt = f"A portrait of {user_id} wearing a professional business suit in an professional office"
+    # Customize the prompt based on gender
+    # if gender == "male":
+    #     prompt = f"Generate a 4K, ultra-clear image of {user_id} in a business suit with a slight smile. Ensure full head, hair and shoulders are visible, with sharp facial features and natural lighting. The image should be realistic, centered, and free of blur."
+
+    # elif gender == "female":
+    #     prompt = "Create a 4K, ultra-clear portrait of Rutvi, a female, in a professional business outfit with a slight smile. The image should showcase her full head, hair, and shoulders, with sharp facial features and natural lighting. Ensure the image is realistic, centered, and free of blur."
+
+    if gender == "male":
+        prompt = f"Generate a 4K, ultra-clear image of {user_id} in a business suit with a slight smile. Ensure full head, hair and shoulders are visible, with sharp facial features and natural lighting. The image should be realistic, centered, and free of blur."
+
+    elif gender == "female":
+        prompt = "Ultra-clear 4K portrait of a woman in a business suit, smiling. Use the provided images to ensure full head, hair, and shoulders are visible, with sharp features and natural lighting."
+
+
+    print(prompt)
+
     images = pipe(prompt=prompt, num_inference_steps=25, num_images_per_prompt=3)
 
     save_generated_images(images, user_id)
     del vae
     del pipe
     torch.cuda.empty_cache()
+
 
 def save_generated_images(images, user_id):
     generated_dir = f'media/generated/{user_id}/'
@@ -68,9 +83,10 @@ def upload_view(request):
     context = {}
     if request.method == 'POST':
         username = request.POST.get('name')
+        gender = request.POST.get('gender')
         images = request.FILES.getlist('upload')
 
-        if len(images) < 5:
+        if len(images) < 3:
             context['error'] = "Please upload at least 5 images."
             return render(request, 'home.html', context)
 
@@ -91,12 +107,10 @@ def upload_view(request):
 
         context['success'] = "Your images are successfully uploaded."
         context['message'] = "Please wait for 20-30 min to get your personalized images."
-        run_command(user_id, user_dir)
-        #request.session['user_id'] = user_id
-        return redirect('generated_images',user_id=user_id)
+        run_command(user_id, user_dir, gender)  # Pass gender here
+        return redirect('generated_images', user_id=user_id)
 
     return render(request, 'home.html', context)
-
 def generated_images(request, user_id):
     print('inside generated images')
     print(f"this is {user_id}")
@@ -115,7 +129,7 @@ def generated_images(request, user_id):
     image_paths = [os.path.join('/media/generated', user_id, f'generated_{i}.png') for i in range(3)]
 
     print('before return render')
-    return render(request, 'generated_images.html', {
+    return render(request, 'generated_images.html', {   
         'image_path1': image_paths[0],
         'image_path2': image_paths[1],
         'image_path3': image_paths[2]
